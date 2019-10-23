@@ -14,10 +14,16 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        compileOptions {
+            sourceCompatibility JavaVersion.VERSION_1_8
+            targetCompatibility JavaVersion.VERSION_1_8
+        }
     }
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
@@ -34,4 +40,42 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 
     implementation 'com.google.android.material:material:1.0.0'
+
+
+
+    //sdp library
+    implementation 'com.intuit.sdp:sdp-android:1.0.6'
+    //ssp for font
+    implementation 'com.intuit.ssp:ssp-android:1.0.6'
+    implementation 'androidx.recyclerview:recyclerview:1.0.0'
+    //for permission
+    implementation 'com.nabinbhandari.android:permissions:3.8'
+    // retrofit
+    implementation 'com.squareup.retrofit2:retrofit:2.3.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.3.0'
+    implementation 'com.squareup.okhttp3:logging-interceptor:3.12.1'
+
+    //Glide
+    implementation 'com.github.bumptech.glide:glide:4.9.0'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.9.0'
+
+    //cardview
+    implementation 'androidx.cardview:cardview:1.0.0'
+
+    /*//Audio video picker
+    implementation 'com.github.jaiselrahman:FilePicker:1.2.2'*/
+
+    // video compressor
+    implementation 'com.github.tcking:giraffecompressor:0.1.4'
+
+    //Video play
+    implementation 'com.devbrackets.android:exomedia:4.3.0'
+
+   //Display database
+    implementation 'com.facebook.stetho:stetho:1.5.1'
+
+    // Room components
+    implementation 'androidx.room:room-runtime:2.2.0'
+    annotationProcessor 'androidx.room:room-compiler:2.2.0'
+    androidTestImplementation 'androidx.room:room-testing:2.2.0'
 }
