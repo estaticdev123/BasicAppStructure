@@ -1,4 +1,4 @@
-package com.basicappstructure.customeclass
+package com.basicappstructure.app_intro_screen
 
 import android.animation.Animator
 import android.animation.AnimatorInflater.loadAnimator

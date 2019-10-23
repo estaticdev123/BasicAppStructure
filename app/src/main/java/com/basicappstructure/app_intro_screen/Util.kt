@@ -1,4 +1,4 @@
-package com.basicappstructure.customeclass
+package com.basicappstructure.app_intro_screen
 
 import android.graphics.drawable.Drawable
 import androidx.annotation.ColorInt
