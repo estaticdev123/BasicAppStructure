@@ -20,4 +20,20 @@
             android:layout_marginBottom="16dp"
             android:layout_marginTop="16dp"
             android:text="Take PICTURE" />
+
+    <View android:layout_width="match_parent"
+          android:layout_centerInParent="true"
+          android:background="@drawable/view_background"
+          android:layout_height="match_parent"/>
+
+
+    <RelativeLayout android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+
+
+
+
+
+    </RelativeLayout>
 </RelativeLayout>
