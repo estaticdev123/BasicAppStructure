@@ -63,7 +63,7 @@
 
         </androidx.viewpager.widget.ViewPager>
 
-        <com.basicappstructure.customeclass.DotsIndicator
+        <com.basicappstructure.app_intro_screen.DotsIndicator
                 android:id="@+id/dots"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
