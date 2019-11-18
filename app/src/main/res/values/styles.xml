@@ -21,4 +21,27 @@
 
     </style>
 
+    <style name="AppTheme.ProgressDialog.Theme" parent="Theme.AppCompat.Light.Dialog">
+       <!-- <item name="android:alertDialogStyle">@style/CustomAlertDialogStyle</item>-->
+        <!--  <item name="android:windowBackground">@android:color/transparent</item>-->
+        <item name="android:windowTitleStyle">@null</item>
+        <item name="android:textColorPrimary">@color/colorPrimary</item>
+
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:paddingLeft">0dp</item>
+        <item name="android:paddingRight">0dp</item>
+        <item name="android:paddingTop">0dp</item>
+        <item name="android:paddingBottom">0dp</item>
+        <item name="android:layout_margin">0dp</item>
+        <item name="colorAccent">@color/colorPrimaryDark</item>
+
+        <item name="android:layout_gravity">center</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowSoftInputMode">stateUnspecified|adjustPan</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+
+
+
 </resources>

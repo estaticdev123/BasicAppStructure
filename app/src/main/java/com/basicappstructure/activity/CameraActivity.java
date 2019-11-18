@@ -2,15 +2,30 @@ package com.basicappstructure.activity;
 
 
 import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
+import android.graphics.PointF;
+import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
-import android.hardware.camera2.*;
+import android.hardware.Sensor;
+import android.hardware.SensorManager;
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraCaptureSession;
+import android.hardware.camera2.CameraCharacteristics;
+import android.hardware.camera2.CameraDevice;
+import android.hardware.camera2.CameraManager;
+import android.hardware.camera2.CameraMetadata;
+import android.hardware.camera2.CaptureRequest;
+import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -23,18 +38,32 @@ import android.view.TextureView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import com.basicappstructure.R;
 
-import java.io.*;
+import com.basicappstructure.R;
+import com.basicappstructure.model.FaceResult;
+import com.basicappstructure.utils.ImageUtils;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class CameraActivity extends AppCompatActivity {
+
+    /*
+    how can we measure distance between object and android phone camera
+    * https://stackoverflow.com/questions/15949777/how-can-we-measure-distance-between-object-and-android-phone-camera
+    * */
 
     private static final String TAG = CameraActivity.class.getName();
     private Button takePictureButton;
@@ -61,6 +90,10 @@ public class CameraActivity extends AppCompatActivity {
     private Handler mBackgroundHandler;
     private HandlerThread mBackgroundThread;
 
+
+    private int MAX_FACE = 10;
+
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -83,7 +116,10 @@ public class CameraActivity extends AppCompatActivity {
         });
 
 
+
+
     }
+
 
     final CameraCaptureSession.CaptureCallback captureCallbackListener = new CameraCaptureSession.CaptureCallback() {
         @Override
@@ -166,6 +202,8 @@ public class CameraActivity extends AppCompatActivity {
             Surface surface = new Surface(texture);
             captureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             captureRequestBuilder.addTarget(surface);
+
+
             cameraDevice.createCaptureSession(Arrays.asList(surface), new CameraCaptureSession.StateCallback() {
                 @Override
                 public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
@@ -206,7 +244,10 @@ public class CameraActivity extends AppCompatActivity {
                 width = jpegSizes[0].getWidth();
                 height = jpegSizes[0].getHeight();
             }
-            ImageReader reader = ImageReader.newInstance(width, height, ImageFormat.JPEG, 1);
+            // ImageReader reader = ImageReader.newInstance(width, height, ImageFormat.RAW_SENSOR, 1);
+
+            ImageReader reader = ImageReader.newInstance(640, 480, ImageFormat.JPEG, 1);
+
             List<Surface> outputSurfaces = new ArrayList<Surface>(2);
             outputSurfaces.add(reader.getSurface());
             outputSurfaces.add(new Surface(textureView.getSurfaceTexture()));
@@ -257,14 +298,20 @@ public class CameraActivity extends AppCompatActivity {
                     super.onCaptureCompleted(session, request, result);
                     Toast.makeText(CameraActivity.this, "Saved:" + file, Toast.LENGTH_SHORT).show();
 
-                    Intent intent = new Intent(CameraActivity.this, ImagePreviewActivity.class);
-                    intent.putExtra("path", file.getAbsolutePath());
-                    startActivity(intent);
-                    finish();
+                    new GenerateBitMap(file.getAbsolutePath()).execute();
 
-                    // createCameraPreview();
+
                 }
+
+
+                //  new GenerateBitMap(file.getAbsolutePath()).execute();
+
+
+                // createCameraPreview();
+
             };
+
+
             cameraDevice.createCaptureSession(outputSurfaces, new CameraCaptureSession.StateCallback() {
                 @Override
                 public void onConfigured(CameraCaptureSession session) {
@@ -353,6 +400,190 @@ public class CameraActivity extends AppCompatActivity {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+
+    private class GenerateBitMap extends AsyncTask<String, Integer, Boolean> {
+        Bitmap bitmap;
+        String url;
+        ProgressDialog progressDialog;
+
+        public GenerateBitMap(String s) {
+            url = s;
+
+            progressDialog = showProgressDialog(CameraActivity.this);
+        }
+
+        @Override
+        protected Boolean doInBackground(String... params) {
+            // bitmap = getBitmapFromURL(url);
+
+
+            Bitmap bitmap = ImageUtils.getBitmap(url, 2048, 1232);
+
+            android.media.FaceDetector fdet_ = new android.media.FaceDetector(bitmap.getWidth(), bitmap.getHeight(), MAX_FACE);
+
+            android.media.FaceDetector.Face[] fullResults = new android.media.FaceDetector.Face[MAX_FACE];
+            fdet_.findFaces(bitmap, fullResults);
+
+            ArrayList<FaceResult> faces_ = new ArrayList<>();
+
+
+            for (int i = 0; i < MAX_FACE; i++) {
+                if (fullResults[i] != null) {
+                    PointF mid = new PointF();
+                    fullResults[i].getMidPoint(mid);
+
+                    float eyesDis = fullResults[i].eyesDistance();
+                    float confidence = fullResults[i].confidence();
+                    float pose = fullResults[i].pose(android.media.FaceDetector.Face.EULER_Y);
+
+                    Rect rect = new Rect(
+                            (int) (mid.x - eyesDis * 1.20f),
+                            (int) (mid.y - eyesDis * 0.55f),
+                            (int) (mid.x + eyesDis * 1.20f),
+                            (int) (mid.y + eyesDis * 1.85f));
+
+                    /**
+                     * Only detect face size > 100x100
+                     */
+                    if (rect.height() * rect.width() > 80 * 80) {
+                        FaceResult faceResult = new FaceResult();
+                        faceResult.setFace(0, mid, eyesDis, confidence, pose, System.currentTimeMillis());
+                        faces_.add(faceResult);
+
+
+                        return true;
+
+
+                    }
+                }
+            }
+
+
+            return false;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean isDetected) {
+            super.onPostExecute(isDetected);
+
+            progressDialog.dismiss();
+            cameraDevice.close();
+            cameraDevice = null;
+            openCamera();
+
+            if (isDetected) {
+                Toast.makeText(CameraActivity.this, "Face Detected...", Toast.LENGTH_LONG).show();
+
+
+
+            } else {
+                Toast.makeText(CameraActivity.this, "Face not......... Detected...", Toast.LENGTH_LONG).show();
+            }
+        }
+
+        /* @Override
+        protected void onPostExecute(Boolean bitmap) {
+            super.onPostExecute(bitmap);
+
+
+            detectFace(bitmap);
+            progressDialog.dismiss();
+
+
+        }*/
+
+    }
+
+
+    public Bitmap getBitmapFromURL(String path) {
+       /* try {
+            java.net.URL url = new java.net.URL(src);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setDoInput(true);
+            connection.connect();
+            InputStream input = connection.getInputStream();
+            Bitmap myBitmap = BitmapFactory.decodeStream(input);
+            return myBitmap;
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }*/
+
+        try {
+            Bitmap bitmap = null;
+            File f = new File(path);
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+
+            bitmap = BitmapFactory.decodeStream(new FileInputStream(f), null, options);
+            return bitmap;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+
+    }
+
+
+    public static ProgressDialog showProgressDialog(Context context) {
+        final ProgressDialog progressDialog = new ProgressDialog(context, R.style.AppTheme_ProgressDialog_Theme);
+        progressDialog.setCancelable(false);
+        progressDialog.setCanceledOnTouchOutside(false);
+        progressDialog.show();
+        return progressDialog;
+    }
+
+    private void detectFace(Bitmap bitmap) {
+
+
+        android.media.FaceDetector fdet_ = new android.media.FaceDetector(bitmap.getWidth(), bitmap.getHeight(), MAX_FACE);
+
+        android.media.FaceDetector.Face[] fullResults = new android.media.FaceDetector.Face[MAX_FACE];
+        fdet_.findFaces(bitmap, fullResults);
+
+        ArrayList<FaceResult> faces_ = new ArrayList<>();
+
+
+        for (int i = 0; i < MAX_FACE; i++) {
+            if (fullResults[i] != null) {
+                PointF mid = new PointF();
+                fullResults[i].getMidPoint(mid);
+
+                float eyesDis = fullResults[i].eyesDistance();
+                float confidence = fullResults[i].confidence();
+                float pose = fullResults[i].pose(android.media.FaceDetector.Face.EULER_Y);
+
+                Rect rect = new Rect(
+                        (int) (mid.x - eyesDis * 1.20f),
+                        (int) (mid.y - eyesDis * 0.55f),
+                        (int) (mid.x + eyesDis * 1.20f),
+                        (int) (mid.y + eyesDis * 1.85f));
+
+                /**
+                 * Only detect face size > 100x100
+                 */
+                if (rect.height() * rect.width() > 100 * 100) {
+                    FaceResult faceResult = new FaceResult();
+                    faceResult.setFace(0, mid, eyesDis, confidence, pose, System.currentTimeMillis());
+                    faces_.add(faceResult);
+
+
+                    Toast.makeText(CameraActivity.this, "Face Detected...", Toast.LENGTH_LONG).show();
+
+                    Intent intent = new Intent(CameraActivity.this, ImagePreviewActivity.class);
+                    intent.putExtra("path", file.getAbsolutePath());
+                    startActivity(intent);
+                    finish();
+
+
+                }
+            }
+        }
+
+
     }
 
 }
