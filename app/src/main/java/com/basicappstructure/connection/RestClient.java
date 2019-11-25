@@ -67,7 +67,6 @@ public class RestClient {
         Retrofit retrofit = new Retrofit.Builder().baseUrl(ApiParamConstant.BASE_URL)
                 /* .addCallAdapterFactory(RxJavaCallAdapterFactory.create())*/
                 .addConverterFactory(new ToStringConverterFactory())
-
                 .client(httpClient)
                 .build();
         return retrofit.create(RestService.class);
