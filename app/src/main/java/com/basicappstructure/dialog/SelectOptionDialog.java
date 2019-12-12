@@ -39,11 +39,17 @@ public class SelectOptionDialog extends Dialog implements View.OnClickListener {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setCancelable(false);
+
         requestWindowFeature(Window.FEATURE_NO_TITLE);
+
         setContentView(R.layout.dialog_select_option);
+
         getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+
         getWindow().setGravity(Gravity.BOTTOM);
+
         getWindow().getAttributes().windowAnimations = R.style.DialogTheme;
 
         initialisation();
@@ -51,10 +57,13 @@ public class SelectOptionDialog extends Dialog implements View.OnClickListener {
     }
 
     private void initialisation() {
+
         rvOption = findViewById(R.id.rvOption);
+
         tvDone = findViewById(R.id.tvDone);
 
         rvOption.setLayoutManager(new LinearLayoutManager(mContext));
+
         rvOption.setAdapter(new SelectOptionAdapter(mOptionList));
 
 

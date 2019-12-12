@@ -16,6 +16,7 @@ import java.util.List;
 public class SelectOptionAdapter extends RecyclerView.Adapter<SelectOptionAdapter.DataViewHolder> {
 
     private List<String> mOptionList;
+    private int prePos = -1;
 
     public SelectOptionAdapter(List<String> mOptionList) {
 
@@ -37,11 +38,8 @@ public class SelectOptionAdapter extends RecyclerView.Adapter<SelectOptionAdapte
             public void onClick(View view) {
 
 
-
             }
         });
-
-
     }
 
     @Override
